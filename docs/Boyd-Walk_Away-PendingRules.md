@@ -79,6 +79,142 @@ These observations came up during live session review. None of these are locked 
 
 ---
 
+## PENDING-4 — STH Inside Bearish FVG + Wick Above = Significant Signal
+
+**Date observed:** 2026-05-15
+
+**Rule:** When an STH forms INSIDE a bearish M5 FVG and a subsequent bar wicks above that STH level, this is a **significantly stronger signal** than a standard STH wick.
+
+**Why it's stronger:**
+- The bearish FVG is an imbalance zone — price is drawn back into it
+- When price enters the FVG and forms an STH there, it means the FVG zone is being tested from within
+- The wick above the STH then clears BOTH the STH liquidity AND the FVG imbalance simultaneously
+- Two confluences in one candle = higher conviction bullish setup
+
+**The setup:**
+1. Bearish FVG exists (identified by bar[i].low > bar[i+2].high on M5)
+2. Price sells off below the FVG
+3. Price rallies back up INTO the FVG zone
+4. STH forms while price is inside the FVG (STH high is within the FVG range)
+5. A subsequent bar wicks above the STH → **SIGNIFICANT bullish confirmation**
+
+**vs Standard STH wick:**
+- STH anywhere + wick above = bullish signal (standard)
+- STH inside bearish FVG + wick above = significant bullish signal (higher conviction)
+
+**Alert distinction:**
+- Standard signal: 🔔 BULLISH CONFIRMED
+- STH inside FVG signal: 🚨 SIGNIFICANT BULLISH — STH inside FVG confirmed
+
+**What's needed before locking:**
+- Validate across 5+ sessions
+- Confirm FVG must be M5 or if HTF FVGs (15m, 1h) carry even more weight
+- Determine minimum FVG size that qualifies (avoid noise from tiny gaps)
+
+---
+
+## PENDING-5 — Protected Low Rule (from PDF training guide)
+
+**Date observed:** 2026-05-15
+**Source:** NQ ICT State-Change FVG Strategy Training Guide
+
+**Rule:** After the STH wick (state change), a **Protected Low** is established — the short-term low that formed BEFORE the state change. If price violates this protected low at any point after the state change, the setup is **invalid** and the entire process restarts from scratch.
+
+**Impact on v1.3:** This is a new invalidation rule not currently in the spec. It protects against false state changes and ensures the bullish structure remains intact before entry.
+
+**What's needed before locking:**
+- Validate across sessions — how often does the protected low get taken out before entry?
+- Define exactly which bar's low is the protected low (lowest low in the selloff window? the low just before the MSS bar?)
+
+---
+
+## PENDING-6 — Lower Timeframe Execution Model (from PDF training guide)
+
+**Date observed:** 2026-05-15
+**Source:** NQ ICT State-Change FVG Strategy Training Guide
+
+**Rule:** After the M5 state change (wick above STH) and a valid M5 bullish FVG is identified, drop to the **30-second or 1-minute chart** for entry. On the lower timeframe, repeat the same state-change model:
+1. Find a bearish FVG on the lower TF
+2. Find a Short-Term High on the lower TF
+3. Wait for one-tick violation of that lower-TF STH
+4. Wait for bullish displacement
+5. Enter from the resulting bullish FVG on the lower TF
+
+**Key principle:** The lower timeframe repeats the same model as the higher timeframe. This fills in §4 (Entry trigger) from v1.3 which is currently undefined.
+
+**Impact on v1.3:** Fills the undefined entry trigger (§4). Current spec detects signals but has no quantified entry — this provides it.
+
+**What's needed before locking:**
+- Validate lower-TF execution across multiple setups
+- Confirm whether 30s or 1m is preferred for execution
+
+---
+
+## PENDING-7 — Discount Rule for STH Placement (from PDF training guide)
+
+**Date observed:** 2026-05-15
+**Source:** NQ ICT State-Change FVG Strategy Training Guide
+
+**Rule:** The STH should preferably form in the **lower 50% of the range** (below equilibrium = discount). STHs forming above equilibrium (premium) are lower quality setups.
+
+- Below EQ = Discount = preferred (better R:R, price can retrace without invalidating structure)
+- Above EQ = Premium = lower conviction
+
+**Impact on v1.3:** This would become a new significance filter (F5 candidate) or a quality rating for setups rather than a hard pass/fail.
+
+**What's needed before locking:**
+- Define what range is used to calculate EQ (session range? RTH open to current high?)
+- Determine if this is a hard filter or just a quality flag
+
+---
+
+## PENDING-8 — Stop Loss, Breakeven & Target Rules (from PDF training guide)
+
+**Date observed:** 2026-05-15
+**Source:** NQ ICT State-Change FVG Strategy Training Guide
+
+These fill in the undefined sections §5, §6, §7 from v1.3:
+
+**Stop Loss (§5):**
+- Place initial stop below the **protected low** (from PENDING-5) or the displacement low
+- This is currently undefined in v1.3
+
+**Breakeven Rule (§7):**
+- When price moves **1R** (equal to initial risk) in your favor → move stop to breakeven (entry price)
+- This does NOT lock profit, does NOT take partial profit
+- It simply removes the possibility of a losing trade
+- Possible outcomes become: +2R profit or 0 (breakeven)
+
+**Profit Target (§6):**
+- Minimum target: **2R** (risk/reward = 1:2)
+- Example: 70 pt risk → 140 pt target
+
+**What's needed before locking:**
+- Validate 1:2 R:R across sessions — does NQ consistently deliver 2R on valid setups?
+- Confirm stop placement (protected low vs displacement low — which is tighter?)
+- This is the closest thing to defining the "Walk Away" rule — at 2R, you walk away
+
+---
+
+## PENDING-9 — One-Tick vs 10-Point MSS Filter Conflict (from PDF training guide)
+
+**Date observed:** 2026-05-15
+**Source:** NQ ICT State-Change FVG Strategy Training Guide
+
+**Conflict identified:** 
+- PDF says: "Only ONE TICK above the STH is required" for state change confirmation
+- v1.3 F1 filter says: MSS wick must be ≥ 10 NQ pts above the STH
+
+These directly conflict. The PDF allows a 1-tick wick as valid state change. v1.3 filters out anything less than 10 pts.
+
+**Implication:** If the PDF rule is correct, v1.3's F1 filter (10 pt minimum) is too strict and is filtering valid setups.
+
+**What's needed before locking:**
+- Review filtered setups from v1.3 backtest — did any 1-tick to 9-pt wicks produce valid follow-through?
+- User decision required: keep F1 as a quality filter (not hard disqualifier) or lower/remove the threshold
+
+---
+
 *Add future pending rule changes below this line.*
 
 ---
