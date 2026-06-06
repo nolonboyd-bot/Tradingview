@@ -215,8 +215,45 @@ These directly conflict. The PDF allows a 1-tick wick as valid state change. v1.
 
 ---
 
+## PENDING-10 — Volume Imbalance Extends FVG Zone
+
+**Date observed:** 2026-06-06
+
+**Rule:** When a bearish FVG is identified, check whether a **volume imbalance** is adjacent to or overlapping with the FVG. If one exists, the full mitigation zone must include BOTH the FVG AND the volume imbalance — not just the FVG gap alone.
+
+**Definitions:**
+- **Bearish FVG zone** (standard): bar[i+2].high → bar[i].low (the three-candle gap)
+- **Volume Imbalance (VI)**: occurs when bar[i].close and bar[i+1].open do not overlap — the candle BODIES leave a gap (separate from wick imbalance)
+- **Extended zone**: if a VI is adjacent to the FVG, the full inefficiency zone = lowest boundary to highest boundary across both the FVG and the VI
+
+**Why it matters:**
+- The FVG alone captures the wick imbalance (gap between candle shadows)
+- The volume imbalance captures the body gap — where no actual trading volume occurred
+- Price is drawn to fill BOTH inefficiencies
+- If you only mark the FVG and ignore the VI extension, you may mark the zone too tight and miss valid entries or misjudge the full mitigation target
+
+**For alert purposes:**
+- The "price touches uncapped FVG" alert (Alert 2) must trigger when price enters the combined zone (FVG + VI), not just the FVG alone
+- The zone top and bottom used in telegram_alerts.js must be recalculated to encompass both
+
+**Example:**
+- FVG zone: 29,150 → 29,180
+- Adjacent volume imbalance extends to: 29,145 → 29,185
+- Full zone to watch: 29,145 → 29,185
+
+**Impact on code:**
+- `telegram_alerts.js`: FVG zone calculation needs to check for adjacent VI and expand zone boundaries
+- `scan_sth_live.js`: When reporting FVG zones, report the full extended zone including VI
+
+**What's needed before locking:**
+- Validate across sessions — does including VI extension improve entry precision?
+- Determine if VI must be on the same bar cluster as the FVG or if it can be on adjacent bars
+- Determine if HTF VIs (15m, 1h) extend M5 FVG zones or are tracked separately
+
+---
+
 *Add future pending rule changes below this line.*
 
 ---
 
-*Last updated: 2026-05-15 | Status: OBSERVATION ONLY — not merged into spec*
+*Last updated: 2026-06-06 | Status: OBSERVATION ONLY — not merged into spec*
